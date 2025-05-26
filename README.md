@@ -1,61 +1,253 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel REST API для онлайн-магазина
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Описание
+REST API для онлайн-магазина с поддержкой корзины, заказов, оплаты и автоматической отмены неоплаченных заказов.
 
-## About Laravel
+## Основные сущности
+- Пользователь (User)
+- Товар (Product)
+- Корзина (Cart, CartItem)
+- Заказ (Order, OrderItem)
+- Способ оплаты (PaymentMethod)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Основной функционал
+- Регистрация и авторизация пользователя
+- Добавление/удаление товаров в корзину
+- Получение списка и информации о товарах (сортировка по цене)
+- Оформление заказа (оплата корзины, генерация уникальной ссылки на оплату)
+- Callback для обновления статуса заказа на "Оплачен"
+- Автоматическая отмена заказа через 2 минуты, если не оплачен
+- Просмотр истории заказов, фильтрация и сортировка
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Примеры API
+- Регистрация: `POST /api/register`
+- Логин: `POST /api/login`
+- Список товаров: `GET /api/products?sort=price_asc|price_desc`
+- Добавить товар в корзину: `POST /api/cart/add`
+- Удалить товар из корзины: `POST /api/cart/remove`
+- Оформить заказ: `POST /api/cart/checkout`
+- Callback оплаты: `POST /api/payment/callback/{order}`
+- Список заказов: `GET /api/orders?status=&sort=date_asc|date_desc`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Примеры запросов (Postman)
 
-## Learning Laravel
+### Регистрация пользователя
+**POST** `/api/register`
+#### Входные данные:
+```
+{
+  "name": "Test",
+  "email": "test@example.com",
+  "password": "secret123"
+}
+```
+#### Ответ:
+```
+{
+  "user": {
+    "id": 1,
+    "name": "Test",
+    "email": "test@example.com",
+    ...
+  }
+}
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Авторизация пользователя
+**POST** `/api/login`
+#### Входные данные:
+```
+{
+  "email": "test@example.com",
+  "password": "secret123"
+}
+```
+#### Ответ:
+```
+{
+  "token": "..."
+}
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+### Получить список товаров
+**GET** `/api/products?sort=price_asc|price_desc`
+#### Ответ:
+```
+[
+  {
+    "id": 1,
+    "name": "Смартфон",
+    "description": "Современный смартфон...",
+    "price": 29999.99,
+    ...
+  },
+  ...
+]
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+### Получить товар по id
+**GET** `/api/products/1`
+#### Ответ:
+```
+{
+  "id": 1,
+  "name": "Смартфон",
+  "description": "Современный смартфон...",
+  "price": 29999.99,
+  ...
+}
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+### Добавить товар в корзину
+**POST** `/api/cart/add`
+#### Входные данные:
+```
+{
+  "product_id": 1,
+  "quantity": 2
+}
+```
+#### Ответ:
+```
+{
+  "message": "Product added to cart"
+}
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+### Удалить товар из корзины
+**POST** `/api/cart/remove`
+#### Входные данные:
+```
+{
+  "product_id": 1
+}
+```
+#### Ответ:
+```
+{
+  "message": "Product removed from cart"
+}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+### Получить корзину пользователя
+**GET** `/api/cart`
+#### Ответ:
+```
+{
+  "id": 1,
+  "user_id": 1,
+  "items": [
+    {
+      "id": 1,
+      "product_id": 1,
+      "quantity": 2,
+      "product": {
+        "id": 1,
+        "name": "Смартфон",
+        ...
+      }
+    },
+    ...
+  ]
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+### Оформить заказ (оплатить корзину)
+**POST** `/api/cart/checkout`
+#### Входные данные:
+```
+{
+  "payment_method_id": 1
+}
+```
+#### Ответ:
+```
+{
+  "order": {
+    "id": 1,
+    "user_id": 1,
+    "status": "pending",
+    "total": 35999.49,
+    ...
+  },
+  "payment_url": "https://pay.method1.com/pay?order=1&amount=35999.49&callback=https%3A%2F%2Fyourdomain%2Fapi%2Fpayment%2Fcallback%2F1"
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+### Callback оплаты (меняет статус заказа на "Оплачен")
+**POST** `/api/payment/callback/1`
+#### Ответ:
+```
+{
+  "message": "Order status updated"
+}
+```
+
+---
+
+### Получить список заказов
+**GET** `/api/orders?status=pending|paid|cancelled&sort=date_asc|date_desc`
+#### Ответ:
+```
+[
+  {
+    "id": 1,
+    "status": "pending",
+    "total": 35999.49,
+    "payment_method_id": 1,
+    "items": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "quantity": 2,
+        "price": 29999.99,
+        "product": {
+          "id": 1,
+          "name": "Смартфон",
+          ...
+        }
+      },
+      ...
+    ],
+    "payment_method": {
+      "id": 1,
+      "name": "TestPay",
+      ...
+    }
+  },
+  ...
+]
+```
+
+---
+
+### Получить заказ по id
+**GET** `/api/orders/1`
+#### Ответ:
+```
+{
+  "id": 1,
+  "status": "pending",
+  "total": 35999.49,
+  "payment_method_id": 1,
+  "paid_at": null,
+  "items": [ ... ],
+  "payment_method": { ... }
+}
+```
